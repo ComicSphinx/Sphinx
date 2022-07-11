@@ -41,29 +41,40 @@ def update_field(request):
     # TODO: refactoring
     # сделать исключение, если не найдено, то создать
     try:
-        budget_by_months = BudgetByMonths.objects.get(field_id=budget.id, month_number = datetime.now().month)
+        budget_by_months = BudgetByMonths.objects.get(field_id=budget, month_number = datetime.now().month)
         budget_by_months.field_name = field_name
         budget_by_months.field_value = field_value
         budget_by_months.save()
-    except model.DoesNotExist:
-        BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
+    except model.NameError:
+        BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
 
     try:
-        budget_by_years = BudgetByYears.objects.get(field_id=budget.id, year_number = datetime.now().year)
+        budget_by_years = BudgetByYears.objects.get(field_id=budget, year_number = datetime.now().year)
         budget_by_years.field_name = field_name
         budget_by_years.field_value = field_value
         budget_by_years.save()
-    except model.DoesNotExist:
-        BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
+    except model.NameError:
+        BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
 
     return redirect('/budget/')
 
+# TODO сделать, чтобы деактивизировались и статьи в истории года и месяца
 @login_required(login_url='/accounts/login/')
-def delete_field(request): # TODO сделать, чтобы деактивизировались и статьи в истории года и месяца
+def delete_field(request):
     field_id = request.POST['field_id']
+
     field = Budget.objects.get(id=field_id)
     field.active = False
     field.save()
+
+    budget_by_months = BudgetByMonths.objects.get(field_id=budget)
+    budget_by_months.active=False
+    budget_by_months.save()
+
+    budget_by_years = BudgetByYears.objects.get(field_id=budget)
+    budget_by_years.active=False
+    budget_by_years.save()
+
     return redirect('/budget/')
 
 def draw_pie(budget_fields):
@@ -77,15 +88,27 @@ def draw_pie(budget_fields):
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
-def draw_historical_months_bar(user_id):
-    months = BudgetByMonths.objects.filter(user_id=user_id, active=True).values_list('month_number').distinct()
+# def draw_historical_months_bar(user_id):
+#     months = BudgetByMonths.objects.filter(user_id=user_id, active=True).values_list('month_number').distinct()
+#     figure = go.Figure()
+#     names = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=list(months)).values_list('field_name').distinct()
+    
+#     for k in names:
+#         values = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i[0], field_name=k[0]).values_list('field_value')
+#         print(values)
+#         figure.add_trace(go.Bar(x=list(months), y=list(values)))
+
+#     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
+#     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+
+def draw_historical_months_bar(user):
+    months = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number').distinct()
+    names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name')
     figure = go.Figure()
-    for i in months:
-        names = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i[0]).values_list('field_name').distinct()
-        for k in names:
-            values = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i[0], field_name=k[0]).values_list('field_value')
-            print(values)
-            figure.add_trace(go.Bar(x=i, y=list(values)))
+
+    for i in names:
+        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value')
+        figure.add_trace(go.Bar(x=list(months)[0], y=list(values)[0], name=str(i)))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
