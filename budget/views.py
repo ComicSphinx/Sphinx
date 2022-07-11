@@ -102,6 +102,7 @@ def draw_pie(budget_fields):
 #     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
 def draw_historical_months_bar(user):
+    # TODO: сделать так, чтобы цвета совпадали с круговым графиком
     months = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number').distinct()
     names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name')
     figure = go.Figure()
