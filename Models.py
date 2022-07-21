@@ -7,7 +7,7 @@ from matplotlib.style import use
 app = Flask(__name__)
 db = SQLAlchemy(app)
 
-class budgetFields(db.Model):
+class BudgetFields(db.Model):
     __tablename__   = "budgetFields"
     id              = db.Column(db.Integer, primary_key=True)
     userId          = db.Column(db.Integer, primary_key=True)
@@ -28,7 +28,7 @@ class budgetFields(db.Model):
             'active': self.active
         }
 
-class budget(db.model):
+class Budget(db.model):
     __tablename__   = "budget"
     id              = db.Column(db.Integer, primary_key=True)
     userId          = db.Column(db.Integer, primary_key=True)
