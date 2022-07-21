@@ -5,7 +5,7 @@ from flask.templating import render_template
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from flask_sslify import SSLify
-from Models import db, BudgetFields, Budget
+from dir.Models import db, BudgetFields, Budget
 import os
 from werkzeug.utils import secure_filename
 
