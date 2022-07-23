@@ -8,6 +8,6 @@ class BudgetFields(models.Model):
 
 class Budget(models.Model):
     # + userId (связать, когда появится авторизация и userid, я буду их где-то хранить) TODO: создать класс "пользователь"
-    budgetFieldId = models.ForeignKey(BudgetFields)
-    value = models.CharField()
+    budgetFieldId = models.ForeignKey(BudgetFields, on_delete=models.PROTECT)
+    value = models.CharField(max_length=100)
     active = models.BooleanField()
