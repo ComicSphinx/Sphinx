@@ -2,4 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 def index(request):
-    return HttpResponse("budget")
+    if request.user.is_authenticated:
+        return HttpResponse("budget. You are logged in")
+    else:
+        # TODO редирект на страницу авторизации
+        return HttpResponse("you are not logged in")
