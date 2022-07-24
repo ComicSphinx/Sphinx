@@ -5,4 +5,4 @@ def index(request):
     if request.user.is_authenticated:
         return HttpResponse("budget. You are logged in")
     else:
-        return HttpResponseRedirect('/accounts')
+        return HttpResponseRedirect('/accounts/login')
