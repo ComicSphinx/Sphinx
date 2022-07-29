@@ -13,5 +13,7 @@ urlpatterns = [
     # accounts/reset/<uidb64>/<token>/ [name='password_reset_confirm']
     # accounts/reset/done/ [name='password_reset_complete']
     
-    path('registration/', views.registration, name='registration')
+    path('registration/', views.registration, name='registration'),
+    path('profile/', views.profile, name='profile'),
+    path('change_password/', views.change_password, name='change password')
 ]
