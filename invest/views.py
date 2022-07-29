@@ -1,9 +1,6 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 
-# возможно, тут надо сделать @login_required вместо if user authenticated
+@login_required(login_url='/accounts/login/')
 def index(request):
-    if request.user.is_authenticated:
-        return HttpResponse("invest. You are logged in")
-    else:
-        return HttpResponseRedirect('/account/login')
+    return HttpResponse("invest. You are logged in")
