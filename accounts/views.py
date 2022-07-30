@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm
 
-def login(request):
+def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -16,16 +16,16 @@ def login(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return HttpResponseRedirect('/budget')
+                return HttpResponseRedirect('/accounts/profile')
     else: 
         form = LoginForm()
+        return render(request, 'login.html', {'form': form})
 
-@login_required(login_url='/accounts/login/')
-def logout(request):
+def logout_view(request):
     logout(request)
-    return HttpResponse('logout')
+    return HttpResponseRedirect('/accounts/profile')
 
-def registration(request):
+def registration_view(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -38,11 +38,11 @@ def registration(request):
         return render(request, 'registration.html', {'form': form})
 
 @login_required(login_url='/accounts/login/')
-def profile(request):
+def profile_view(request):
     return render(request, 'profile.html')
 
 @login_required(login_url='/accounts/login/')
-def change_password(request):
+def change_password_view(request): # TODO оно не работает (не меняет пароль, хотя возвращает успешный response). Возможно, я не сохраняю?
     if request.method == 'POST':
         username = request.user.username
         new_password = request.POST['password']
