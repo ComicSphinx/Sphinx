@@ -46,7 +46,11 @@ def change_password_view(request): # TODO оно не работает (не м�
     if request.method == 'POST':
         username = request.user.username
         new_password = request.POST['password']
-        User.objects.get(username=username).set_password(new_password)
+        
+        user = User.objects.get(username=username)
+        user.set_password(new_password)
+        user.save()
+        
         return HttpResponse("Пароль изменен успешно")
     else:
         form = ChangePasswordForm()
