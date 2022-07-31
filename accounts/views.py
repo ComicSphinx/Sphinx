@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm
@@ -16,7 +16,9 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return HttpResponseRedirect('/accounts/profile/')
+                return redirect('/accounts/profile')
+            else: # TODO Возвращать ошибку о некорректном пароле или логине
+                return render(request, 'login.html', {'form': form})        
     else: 
         form = LoginForm()
         return render(request, 'login.html', {'form': form})
