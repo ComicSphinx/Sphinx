@@ -12,6 +12,7 @@ def budget_view(request):
     return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields})
 
 # TODO refactor it (name, at least)
+@login_required(login_url='/accounts/login/')
 def add_field_to_db(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
@@ -19,12 +20,14 @@ def add_field_to_db(request):
     record.save()
     return redirect('/budget/')
 
+@login_required(login_url='/accounts/login/')
 def update_field(request):
     field_id = request.POST['field_id']
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
     
     # TODO: Скорректировать, чтобы обязательные поля (id не нужно было явно указывать)
+    # TODO: оно обрезает строку (имя и значение) после пробела, починить
     field = Budget(id=field_id)
     field.user_id = request.user
     field.field_id = field_id
