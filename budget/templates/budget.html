@@ -1,10 +1,23 @@
-<form action="/budget/add_field/" method="post">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit">
-</form>
-
+<head> <!-- TODO: Подключить стиль по-правильному-->
+    <link href="../static/main.css" type="style/css" rel="stylesheet"/>
+</head>
+<body>
+    <form action="/budget/add_field/" method="post">
+        {% csrf_token %}
+        {{ add_field_form }}
+        <input type="submit" value="Submit">
+    </form>
+    
 <!-- Надо добавить условие if active=true -->
-{% for i in queryset %}
-<p>{{ i.field_value}} | {{ i.field_name }}</p>
-{% endfor %} 
+<div class="grid">
+    {% for i in queryset %}
+        <form action="/budget/update_field/" method="post">
+            {% csrf_token %}
+            <input type="text" name="field_name" value={{ i.field_name }}>
+            <input type="text" name="field_value" value={{ i.field_value }}>
+            <input type="hidden" name="field_id" value={{ i.id }}>
+            <input type="submit" value="Обновить">
+        </form>
+    </div>
+    {% endfor %} 
+</body>
