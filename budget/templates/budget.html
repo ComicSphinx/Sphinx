@@ -4,6 +4,7 @@
     <input type="submit" value="Submit">
 </form>
 
+<!-- Надо добавить условие if active=true -->
 {% for i in queryset %}
 <p>{{ i.field_value}} | {{ i.field_name }}</p>
-{% endfor %}
+{% endfor %} 
