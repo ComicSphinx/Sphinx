@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     field_name = models.CharField(max_length=100, default='null')
-    value = models.CharField(max_length=100, default='null')
+    field_value = models.CharField(max_length=100, default='null')
     active = models.BooleanField()
 
     def serialize(self):
