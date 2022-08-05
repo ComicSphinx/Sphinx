@@ -4,7 +4,7 @@
 <body>
     <form action="/budget/add_field/" method="post">
         {% csrf_token %}
-        {{ form }}
+        {{ add_field_form }}
         <input type="submit" value="Submit">
     </form>
     
@@ -13,8 +13,9 @@
     {% for i in queryset %}
         <form action="/budget/update_field/" method="post">
             {% csrf_token %}
-            <input type="text" value={{ i.field_name }}>
-            <input type="text" value={{ i.field_value }}>
+            <input type="text" name="field_name" value={{ i.field_name }}>
+            <input type="text" name="field_value" value={{ i.field_value }}>
+            <input type="hidden" name="field_id" value={{ i.id }}>
             <input type="submit" value="Обновить">
         </form>
     </div>
