@@ -1,6 +1,20 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.shortcuts import redirect, render
+from sqlalchemy import true
+
+from .forms import AddFieldForm
+from .models import Budget
 
 @login_required(login_url='/accounts/login/')
-def index(request):
-    return HttpResponse("budget. You are logged in")
+def budget_view(request):
+    form = AddFieldForm()
+    budget_fields = Budget.objects.filter(user_id=request.user)
+    return render(request, 'budget.html', {'form': form, 'queryset': budget_fields})
+
+# TODO refactor it (name, at least)
+def add_field_to_db(request):
+    field_name = request.POST['field_name']
+    field_value = request.POST['field_value']
+    record = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True)
+    record.save()
+    return redirect('/budget/')
