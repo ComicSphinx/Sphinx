@@ -14,6 +14,6 @@ class Budget(models.Model):
         return {
             'user': self.user,
             'field_name': self.field_name,
-            'value': self.value,
+            'field_value': self.field_value,
             'active': self.active
         }
