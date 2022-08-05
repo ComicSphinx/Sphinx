@@ -1,12 +1,7 @@
-{% for i in budget_fields %}
-    {% if i.active == true %}
-        <p>budget_fields.field_name</p>
-        <p>budget_fields.value</p>
-    {% endif %}
-{% endfor %}
-
 <form action="/budget/add_field/" method="post">
     {% csrf_token %}
     {{ form }}
     <input type="submit" value="Submit">
 </form>
+
+{{ data }}

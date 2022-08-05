@@ -9,7 +9,7 @@ from .models import Budget
 def budget_view(request):
     form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user)
-    return render(request, 'budget.html', {'form': form})
+    return render(request, 'budget.html', {'form': form, 'data': budget_fields})
 
 # TODO refactor it (name, at least)
 def add_field_to_db(request):
