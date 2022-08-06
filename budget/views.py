@@ -26,13 +26,8 @@ def update_field(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
     
-    # TODO: Скорректировать, чтобы обязательные поля (id не нужно было явно указывать)
-    # TODO: оно обрезает строку (имя и значение) после пробела, починить
-    field = Budget(id=field_id)
-    field.user_id = request.user
-    field.field_id = field_id
+    field = Budget.objects.get(id=field_id)
     field.field_name = field_name
     field.field_value = field_value
-    field.active = True
     field.save()
     return redirect('/budget/')
