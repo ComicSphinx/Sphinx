@@ -9,13 +9,13 @@
         <input type="submit" value="Добавить">
     </form>
     
-<!-- Надо добавить условие if active=true -->
+<!-- TODO: Надо добавить условие if active=true -->
 <div class="grid">
     {% for i in queryset %}
         <form action="/budget/update_field/" method="post">
             {% csrf_token %}
-            <input type="text" name="field_name" value={{ i.field_name }}>
-            <input type="text" name="field_value" value={{ i.field_value }}>
+            <input type="text" name="field_name" value="{{ i.field_name }}">
+            <input type="text" name="field_value" value="{{ i.field_value }}">
             <input type="hidden" name="field_id" value={{ i.id }}>
             <input type="submit" value="Обновить">
         </form>

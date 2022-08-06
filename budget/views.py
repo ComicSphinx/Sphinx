@@ -26,7 +26,6 @@ def update_field(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
     
-    # TODO: оно обрезает строку (имя и значение) после пробела, починить
     field = Budget.objects.get(id=field_id)
     field.field_name = field_name
     field.field_value = field_value
