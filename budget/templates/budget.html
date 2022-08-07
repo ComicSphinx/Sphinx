@@ -1,23 +1,28 @@
+<!DOCTYPE html>
 <head> <!-- TODO: Подключить стиль по-правильному-->
     <link href="../static/main.css" type="style/css" rel="stylesheet"/>
 </head>
 <body>
+    <form action="/accounts/profile">
+        <button type = "submit">Перейти в профиль</button>
+    </form>
+
     <form action="/budget/add_field/" method="post">
         {% csrf_token %}
         {{ add_field_form }}
-        <input type="submit" value="Submit">
+        <input type="submit" value="Добавить">
     </form>
     
-<!-- Надо добавить условие if active=true -->
-<div class="grid">
-    {% for i in queryset %}
-        <form action="/budget/update_field/" method="post">
-            {% csrf_token %}
-            <input type="text" name="field_name" value={{ i.field_name }}>
-            <input type="text" name="field_value" value={{ i.field_value }}>
-            <input type="hidden" name="field_id" value={{ i.id }}>
-            <input type="submit" value="Обновить">
-        </form>
+<!-- TODO: Надо добавить условие if active=true -->
+    <div class="grid">
+        {% for i in queryset %}
+            <form action="/budget/update_field/" method="post">
+                {% csrf_token %}
+                <input type="text" name="field_name" value="{{ i.field_name }}">
+                <input type="text" name="field_value" value="{{ i.field_value }}">
+                <input type="hidden" name="field_id" value={{ i.id }}>
+                <input type="submit" value="Обновить">
+            </form>
+        {% endfor %} 
     </div>
-    {% endfor %} 
 </body>
