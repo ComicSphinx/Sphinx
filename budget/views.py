@@ -34,8 +34,8 @@ def update_field(request):
     field.save()
     return redirect('/budget/')
 
-def draw_pie():
-    df = ['A', 'B', 'C'] # сюда положить названия колонок
-    val = [50, 60, 70]
+def draw_pie():             # TODO: сделать отображение названий 
+    df = ['A', 'B', 'C']    # TODO сюда положить названия колонок
+    val = [50, 60, 70]      # TODO: сюда положить значения колонок
     fig = px.pie(df, title='Кошелёк', values=val)
     return(pio.to_html(fig, include_plotlyjs=True, full_html=False))
