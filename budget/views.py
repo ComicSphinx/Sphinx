@@ -42,5 +42,5 @@ def draw_pie(budget_fields):# TODO: сделать отображение наз
         labels.append(i.field_name)
         values.append(i.field_value)
     
-    figure = px.pie(labels, names=labels, values=values)
+    figure = px.pie(names=labels, values=values)
     return(pio.to_html(figure, include_plotlyjs=True, full_html=False))
