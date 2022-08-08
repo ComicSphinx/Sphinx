@@ -11,7 +11,7 @@ from .models import Budget
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user)
-    return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie()})
+    return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields)})
 
 # TODO refactor it (name, at least)
 @login_required(login_url='/accounts/login/')
@@ -34,8 +34,13 @@ def update_field(request):
     field.save()
     return redirect('/budget/')
 
-def draw_pie():             # TODO: сделать отображение названий 
-    df = ['A', 'B', 'C']    # TODO сюда положить названия колонок
-    val = [50, 60, 70]      # TODO: сюда положить значения колонок
-    fig = px.pie(df, title='Кошелёк', values=val)
-    return(pio.to_html(fig, include_plotlyjs=True, full_html=False))
+def draw_pie(budget_fields):# TODO: сделать отображение названий
+    labels = []
+    values = []
+
+    for i in budget_fields:
+        labels.extend(i.field_name)
+        values.extend(i.field_value)
+
+    figure = px.pie(labels, title='Кошелёк', values=values)
+    return(pio.to_html(figure, include_plotlyjs=True, full_html=False))
