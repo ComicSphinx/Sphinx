@@ -39,8 +39,8 @@ def draw_pie(budget_fields):# TODO: сделать отображение наз
     values = []
 
     for i in budget_fields:
-        labels.extend(i.field_name)
-        values.extend(i.field_value)
-
-    figure = px.pie(labels, title='Кошелёк', values=values)
+        labels.append(i.field_name)
+        values.append(i.field_value)
+    
+    figure = px.pie(labels, names=labels, values=values)
     return(pio.to_html(figure, include_plotlyjs=True, full_html=False))
