@@ -74,3 +74,10 @@ def draw_pie(budget_fields):# TODO: сделать отображение наз
     
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+
+# Наверное, это надо запросом будет сделать, ну или подгружать сразу все данные и оно прямо на странице выбираться будет
+def draw_historical_bar(user_id):
+    budget_now = Budget.objects.filter(user_id=user_id, active=True)
+    budget_by_months = BudgetByMonths.objects.filter(user_id=user_id, active=True)
+    budget_by_years = BudgetByYears.objects.filter(user_id=user_id, active=True)
+    
