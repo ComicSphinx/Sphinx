@@ -51,6 +51,5 @@ def draw_pie(budget_fields):# TODO: сделать отображение наз
         labels.append(i.field_name)
         values.append(i.field_value)
     
-    # figure = px.pie(names=labels, values=values, textinfo='label+percent')
-    figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent')])
+    figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
