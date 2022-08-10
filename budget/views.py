@@ -39,18 +39,18 @@ def update_field(request):
     # TODO: refactoring
     # сделать исключение, если не найдено, то создать
     try:
-        budget_by_month = BudgetByMonths.objects.get(field_id=budget.id, month_number = datetime.now().month)
-        budget_by_month.field_name = field_name
-        budget_by_month.field_value = field_value
-        budget_by_month.save()
+        budget_by_months = BudgetByMonths.objects.get(field_id=budget.id, month_number = datetime.now().month)
+        budget_by_months.field_name = field_name
+        budget_by_months.field_value = field_value
+        budget_by_months.save()
     except model.DoesNotExist:
         BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
 
     try:
-        budget_by_year = BudgetByYears.objects.get(field_id=budget.id, year_number = datetime.now().year)
-        budget_by_year.field_name = field_name
-        budget_by_year.field_value = field_value
-        budget_by_year.save()
+        budget_by_years = BudgetByYears.objects.get(field_id=budget.id, year_number = datetime.now().year)
+        budget_by_years.field_name = field_name
+        budget_by_years.field_value = field_value
+        budget_by_years.save()
     except model.DoesNotExist:
         BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
 
