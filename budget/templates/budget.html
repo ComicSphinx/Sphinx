@@ -18,10 +18,17 @@
         {% for i in queryset %}
             <form action="/budget/update_field/" method="post">
                 {% csrf_token %}
-                <input type="text" name="field_name" value="{{ i.field_name }}">
-                <input type="text" name="field_value" value="{{ i.field_value }}">
-                <input type="hidden" name="field_id" value={{ i.id }}>
-                <input type="submit" value="Обновить">
+                    <input type="hidden" name="field_id" value={{ i.id }}>
+                    <input type="text" name="field_name" value="{{ i.field_name }}">
+                    <input type="text" name="field_value" value="{{ i.field_value }}">
+                    <input type="submit" value="Обновить">
+            </form>
+            
+            <!-- TODO refactoring -->
+            <form action="/budget/delete_field/" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="field_id" value={{ i.id }} form="update">
+                <input type="submit" value="удалить">
             </form>
         {% endfor %} 
     </div>
