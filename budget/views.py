@@ -2,10 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
 import plotly.graph_objects as go
+import plotly.express as px
 import datetime
 
 from .forms import AddFieldForm
-from .models import Budget
+from .models import Budget, BudgetByMonths, BudgetByYears
 
 # TODO изменить field на expenditure ?
 
@@ -13,7 +14,7 @@ from .models import Budget
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
-    return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields)})
+    return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user)})
 
 # TODO refactor it (name, at least)
 @login_required(login_url='/accounts/login/')
@@ -76,8 +77,16 @@ def draw_pie(budget_fields):# TODO: сделать отображение наз
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
 # Наверное, это надо запросом будет сделать, ну или подгружать сразу все данные и оно прямо на странице выбираться будет
-def draw_historical_bar(user_id):
-    budget_now = Budget.objects.filter(user_id=user_id, active=True)
+def draw_historical_months_bar(user_id): # TODO: сделать чисто группу таблиц по месяцам и полям, и то же самое в отдельном месяце с годами. Будет много графиков, нормуль
     budget_by_months = BudgetByMonths.objects.filter(user_id=user_id, active=True)
-    budget_by_years = BudgetByYears.objects.filter(user_id=user_id, active=True)
     
+    budget_fields = []
+    budget_values = []
+    for i in budget_by_months:
+        budget_fields.append(i.field_name)
+        budget_values.append(i.field_value)
+
+    figure = px.bar(x="Месяц", y="Сумма", barmode="group",
+                category_orders={"Статья расхода": budget_fields, "Сумма": budget_values})
+
+    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
