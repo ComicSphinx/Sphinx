@@ -11,7 +11,7 @@ from .models import Budget
 @login_required(login_url='/accounts/login/')
 def budget_view(request):
     add_field_form = AddFieldForm()
-    budget_fields = Budget.objects.filter(user_id=request.user)
+    budget_fields = Budget.objects.filter(user_id=request.user, active=True)
     return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields)})
 
 # TODO refactor it (name, at least)
