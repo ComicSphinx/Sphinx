@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 from .forms import AddFieldForm
 from .models import Budget
 
+# TODO изменить field на expenditure ?
+
 @login_required(login_url='/accounts/login/')
 def budget_view(request):
     add_field_form = AddFieldForm()
@@ -32,6 +34,14 @@ def update_field(request):
     field.field_value = field_value
     field.save()
     return redirect('/budget/')
+
+@login_required(login_url='/accounts/login/')
+def delete_field(request):
+        field_id = request.POST['field_id']
+        field = Budget.objects.get(id=field_id)
+        field.active = False
+        field.save()
+        return redirect('/budget/')
 
 def draw_pie(budget_fields):# TODO: сделать отображение названий
     labels = []
