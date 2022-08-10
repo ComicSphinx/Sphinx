@@ -7,4 +7,5 @@ class Budget(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     field_name = models.TextField(default='null')
     field_value = models.TextField(default='null') # TODO сделать это поле числовым, вместе с инпутом(чтобы принимал только числа)
+    created_date = models.DateField(auto_now_add=True)
     active = models.BooleanField()
