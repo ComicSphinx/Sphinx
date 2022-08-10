@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
 import plotly.graph_objects as go
+import datetime
 
 from .forms import AddFieldForm
 from .models import Budget
@@ -19,8 +20,9 @@ def budget_view(request):
 def add_field_to_db(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
-    record = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True)
-    record.save()
+    budget = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True).save()
+    BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
+    BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
     return redirect('/budget/')
 
 @login_required(login_url='/accounts/login/')
@@ -29,10 +31,29 @@ def update_field(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
     
-    field = Budget.objects.get(id=field_id)
-    field.field_name = field_name
-    field.field_value = field_value
-    field.save()
+    budget = Budget.objects.get(id=field_id)
+    budget.field_name = field_name
+    budget.field_value = field_value
+    budget.save()
+
+    # TODO: refactoring
+    # сделать исключение, если не найдено, то создать
+    try:
+        budget_by_month = BudgetByMonths.objects.get(field_id=budget.id, month_number = datetime.now().month)
+        budget_by_month.field_name = field_name
+        budget_by_month.field_value = field_value
+        budget_by_month.save()
+    except model.DoesNotExist:
+        BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
+
+    try:
+        budget_by_year = BudgetByYears.objects.get(field_id=budget.id, year_number = datetime.now().year)
+        budget_by_year.field_name = field_name
+        budget_by_year.field_value = field_value
+        budget_by_year.save()
+    except model.DoesNotExist:
+        BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
+
     return redirect('/budget/')
 
 @login_required(login_url='/accounts/login/')
