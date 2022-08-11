@@ -110,12 +110,15 @@ def draw_historical_months_bar(user):
     figure = go.Figure()
     field_values = []
 
-    # for i in budget_by_months:
-    #     figure.add_trace(go.Bar(x=list(months), y=list(values), name=list(names)[0][0]))
-    figure.add_trace(go.Bar(x=[7, 8], y=[0, 310], name='Квартира'))
-    figure.add_trace(go.Bar(x=[7, 8], y=[0, 500], name='Акции'))
-    figure.add_trace(go.Bar(x=[7, 8], y=[0, 800], name='Облигации'))
-    figure.add_trace(go.Bar(x=[7, 8], y=[110, 110], name='Хотелки'))
+    for i in names:
+        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value').distinct()
+        figure.add_trace(go.Bar(x=[7, 8], y=[0, 310], name=i[0]))
+    
+    # что делать, если тогда еще не было этой записи? Это явно возникнет
+    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 310], name='Квартира'))
+    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 500], name='Акции'))
+    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 800], name='Облигации'))
+    # figure.add_trace(go.Bar(x=[7, 8], y=[110, 110], name='Хотелки'))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
