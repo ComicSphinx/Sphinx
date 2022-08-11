@@ -65,7 +65,7 @@ def delete_field(request):
     field.save()
     return redirect('/budget/')
 
-def draw_pie(budget_fields):# TODO: сделать отображение названий
+def draw_pie(budget_fields):
     labels = []
     values = []
 
