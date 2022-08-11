@@ -26,6 +26,7 @@ def add_field_to_db(request):
     BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.datetime.now().year, active=True).save()
     return redirect('/budget/')
 
+# TODO починить апдейт перед сливом в main
 @login_required(login_url='/accounts/login/')
 def update_field(request):
     field_id = request.POST['field_id']
@@ -58,7 +59,7 @@ def update_field(request):
     return redirect('/budget/')
 
 @login_required(login_url='/accounts/login/')
-def delete_field(request):
+def delete_field(request): # TODO сделать, чтобы деактивизировались и статьи в истории года и месяца
     field_id = request.POST['field_id']
     field = Budget.objects.get(id=field_id)
     field.active = False
@@ -78,12 +79,13 @@ def draw_pie(budget_fields):
 
 def draw_historical_months_bar(user_id):
     months = BudgetByMonths.objects.filter(user_id=user_id, active=True).values_list('month_number').distinct()
-        
     figure = go.Figure()
     for i in months:
-        name, values = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i).values_list('field_name', 'field_value')
-        figure.add_trace(x=i, y=values)
+        names = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i[0]).values_list('field_name').distinct()
+        for k in names:
+            values = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i[0], field_name=k[0]).values_list('field_value')
+            print(values)
+            figure.add_trace(go.Bar(x=i, y=list(values)))
 
-    figure.update_layout(barmode='stack')
-    
+    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
