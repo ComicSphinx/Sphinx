@@ -22,8 +22,8 @@ def add_field_to_db(request):
     field_value = request.POST['field_value']
     budget = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True)
     budget.save()
-    BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.datetime.now().month, active=True).save()
-    BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.datetime.now().year, active=True).save()
+    BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.datetime.now().month, active=True).save()
+    BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.datetime.now().year, active=True).save()
     return redirect('/budget/')
 
 @login_required(login_url='/accounts/login/')
