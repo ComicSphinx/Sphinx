@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
 import plotly.graph_objects as go
-import plotly.express as px
 import datetime
 
 from .forms import AddFieldForm
@@ -21,7 +20,8 @@ def budget_view(request):
 def add_field_to_db(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
-    budget = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True).save()
+    budget = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True)
+    budget.save()
     BudgetByMonths(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
     BudgetByYears(user_id=request.user, field_id=budget.id, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
     return redirect('/budget/')
@@ -76,17 +76,14 @@ def draw_pie(budget_fields):
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
-# Наверное, это надо запросом будет сделать, ну или подгружать сразу все данные и оно прямо на странице выбираться будет
-def draw_historical_months_bar(user_id): # TODO: сделать чисто группу таблиц по месяцам и полям, и то же самое в отдельном месяце с годами. Будет много графиков, нормуль
-    budget_by_months = BudgetByMonths.objects.filter(user_id=user_id, active=True)
+def draw_historical_months_bar(user_id):
+    months = BudgetByMonths.objects.filter(user_id=user_id, active=True).values_list('month_number').distinct()
+        
+    figure = go.Figure()
+    for i in months:
+        name, values = BudgetByMonths.objects.filter(user_id=user_id, active=True, month_number=i).values_list('field_name', 'field_value')
+        figure.add_trace(x=i, y=values)
+
+    figure.update_layout(barmode='stack')
     
-    budget_fields = []
-    budget_values = []
-    for i in budget_by_months:
-        budget_fields.append(i.field_name)
-        budget_values.append(i.field_value)
-
-    figure = px.bar(x="Месяц", y="Сумма", barmode="group",
-                category_orders={"Статья расхода": budget_fields, "Сумма": budget_values})
-
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
