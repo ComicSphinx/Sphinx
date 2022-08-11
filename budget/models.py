@@ -21,6 +21,7 @@ class BudgetByMonths(models.Model):
 class BudgetByYears(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     field_id = models.ForeignKey(Budget, on_delete=models.CASCADE)
+    field_name = models.TextField(default='null')
     field_value = models.TextField(default='null') # TODO сделать это поле числовым, вместе с инпутом(чтобы принимал только числа)
     year_number = models.TextField(default='null') # TODO сделать это поле числовым
     active = models.BooleanField() # TODO это поле надо деактивировать, если деактивировано поле active в Budget
