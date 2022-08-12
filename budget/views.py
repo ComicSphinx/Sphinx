@@ -103,16 +103,17 @@ def draw_pie(budget_fields):
 
 def draw_historical_months_bar(user):
     # TODO: сделать так, чтобы цвета совпадали с круговым графиком
-    budget_by_months = BudgetByMonths.objects.filter(user_id=user, active=True).distinct()
-    months = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number').distinct()
-    values = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_value').distinct()
+    # budget_by_months = BudgetByMonths.objects.filter(user_id=user, active=True).distinct()
+    # months = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number').distinct()
+    # values = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_value').distinct()
     names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name')
     figure = go.Figure()
-    field_values = []
+    # field_values = []
 
     for i in names:
         values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value').distinct()
-        figure.add_trace(go.Bar(x=[7, 8], y=list(values)[0], name=i[0]))
+        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('month_number').distinct()
+        figure.add_trace(go.Bar(x=list(months)[0], y=list(values)[0], name=i[0]))
 
     # figure.add_trace(go.Bar(x=[7, 8], y=[310], name='тест'))
     
