@@ -59,7 +59,6 @@ def update_field(request):
 
     return redirect('/budget/')
 
-# TODO сделать, чтобы деактивизировались и статьи в истории года и месяца
 @login_required(login_url='/accounts/login/')
 def delete_field(request):
     field_id = request.POST['field_id']
@@ -68,11 +67,11 @@ def delete_field(request):
     field.active = False
     field.save()
 
-    budget_by_months = BudgetByMonths.objects.get(field_id=budget)
+    budget_by_months = BudgetByMonths.objects.get(field_id=field, month_number=datetime.now().month)
     budget_by_months.active=False
     budget_by_months.save()
 
-    budget_by_years = BudgetByYears.objects.get(field_id=budget)
+    budget_by_years = BudgetByYears.objects.get(field_id=field, year_number=datetime.now().year)
     budget_by_years.active=False
     budget_by_years.save()
 
