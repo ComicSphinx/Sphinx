@@ -30,6 +30,8 @@ def add_field_to_db(request):
 # TODO починить апдейт перед сливом в main, оно создает дублирующие записи
 @login_required(login_url='/accounts/login/')
 def update_field(request):
+    ####################################
+    # Тут баг
     field_id = request.POST['field_id']
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
@@ -38,14 +40,16 @@ def update_field(request):
     field.field_name = field_name
     field.field_value = field_value
     field.save()
+    #####################################
 
     # TODO: refactoring
     try:
-        field_by_months = BudgetByMonths.objects.get(field_id=field, month_number = datetime.now().month)
+        field_by_months = BudgetByMonths.objects.get(field_id=field, month_number=datetime.now().month)
         field_by_months.field_name = field_name
         field_by_months.field_value = field_value
         field_by_months.save()
     except BudgetByMonths.DoesNotExist:
+        print("Does not exist")
         BudgetByMonths(user_id=request.user, field_id=field, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
 
     try:
