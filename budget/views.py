@@ -14,7 +14,6 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
-    print(BudgetByMonths.objects.filter(user_id=request.user, active=True).values_list('field_name'))
     return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user)})
 
 # TODO refactor it (name, at least)
@@ -28,7 +27,6 @@ def add_field_to_db(request):
     BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
     return redirect('/budget/')
 
-# TODO починить апдейт перед сливом в main, оно создает дублирующие записи
 @login_required(login_url='/accounts/login/')
 def update_field(request):
     field_id = request.POST['field_id']
@@ -41,18 +39,14 @@ def update_field(request):
     field.save()
 
     # TODO: refactoring
-    # БАГ ###################################################################################
     try:
         field_by_months = BudgetByMonths.objects.get(field_id=field, month_number=datetime.now().month)
-        print("Field id try", field)
         field_by_months.field_name = field_name
         field_by_months.field_value = field_value
         field_by_months.save()
     except BudgetByMonths.DoesNotExist:
-        print("Does not exist")
-        print("Field id", field)
         BudgetByMonths(user_id=request.user, field_id=field, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
-    #########################################################################################
+
     try:
         field_by_years = BudgetByYears.objects.get(field_id=field, year_number = datetime.now().year)
         field_by_years.field_name = field_name
@@ -99,6 +93,7 @@ def draw_pie(budget_fields):
 #       то добавлять в массив запись с прошлого месяца
 # TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
 # TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
+# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
 def draw_historical_months_bar(user):
     names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name').distinct()
     figure = go.Figure()
