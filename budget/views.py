@@ -95,12 +95,12 @@ def draw_pie(budget_fields):
 # TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
 # TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
 def draw_historical_months_bar(user):
-    names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name').distinct()
+    names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
     figure = go.Figure()
 
     for i in names:
-        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value', flat=True).distinct()
-        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('month_number', flat=True).distinct()
+        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
+        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('month_number', flat=True).distinct()
         figure.add_trace(go.Bar(x=list(months), y=list(values), name=i[0]))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
