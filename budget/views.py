@@ -14,7 +14,10 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
-    return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user)})
+    return render(request, 'budget.html', 
+                    {'add_field_form': AddFieldForm, 'queryset': budget_fields, 
+                    'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user), 
+                    'bar_by_years': draw_historical_years_bar(request.user)})
 
 # TODO refactor it (name, at least)
 @login_required(login_url='/accounts/login/')
@@ -102,6 +105,26 @@ def draw_historical_months_bar(user):
         values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
         months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('month_number', flat=True).distinct()
         figure.add_trace(go.Bar(x=list(months), y=list(values), name=i[0]))
+
+    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
+    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+
+# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
+# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
+#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
+#       Либо добавлять записи о каждой активной статье с наступлением месяца. Если статья для текущего месяца не найдена (и если она не active=False), 
+#       то добавлять в массив запись с прошлого месяца
+# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
+# TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
+# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
+def draw_historical_years_bar(user):
+    names = BudgetByYears.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
+    figure = go.Figure()
+
+    for i in names:
+        values = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
+        years = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('year_number', flat=True).distinct()
+        figure.add_trace(go.Bar(x=list(years), y=list(values), name=i[0]))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
