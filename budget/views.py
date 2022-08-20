@@ -105,7 +105,7 @@ def draw_historical_months_bar(user):
     for i in names:
         values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
         months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('month_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(months), y=list(values), name=i[0]))
+        figure.add_trace(go.Bar(x=list(months), y=list(values), name=i))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
@@ -125,7 +125,7 @@ def draw_historical_years_bar(user):
     for i in names:
         values = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
         years = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('year_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(years), y=list(values), name=i[0]))
+        figure.add_trace(go.Bar(x=list(years), y=list(values), name=i))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
