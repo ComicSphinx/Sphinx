@@ -1,7 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
+
+from math import pi
 import plotly.graph_objects as go
+from bokeh.palettes import Category20
+from bokeh.plotting import figure
+from bokeh.transform import cumsum
+from bokeh.resources import CDN
+from bokeh.embed import components
+import pandas as pd
+
 from datetime import datetime as datetime
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -14,10 +23,13 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
+    budget_by_years = BudgetByYears.objects.filter(user_id=request.user, active=True)
+    script, div = draw_historical_months_bar(request.user)
+
     return render(request, 'budget.html', 
                     {'add_field_form': AddFieldForm, 'queryset': budget_fields, 
-                    'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user), 
-                    'bar_by_years': draw_historical_years_bar(request.user)})
+                    'pie': draw_pie(budget_fields), 
+                    'script': script, 'div': div})
 
 # TODO refactor it (name, at least)
 @login_required(login_url='/accounts/login/')
@@ -89,43 +101,50 @@ def draw_pie(budget_fields):
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
-# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
-# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
-#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
-#       Либо добавлять записи о каждой активной статье с наступлением месяца. Если статья для текущего месяца не найдена (и если она не active=False), 
-#       то добавлять в массив запись с прошлого месяца
-# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
-# TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
-# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
-# TODO: этот метод можно сделать универсальныМ, передавая в него параметры, и сразу получать в одной функции и график по месяцам, и по годам
+# переписать на draw_pie (отрисовывает пирог)
+# def draw_historical_months_bar(budget_by_months):
+#     x = {}
+    
+#     for i in budget_by_months:
+#         x.update({i.month_number: i.field_value})
+#     chart_colors = ['#44e5e2', '#e29e44', '#e244db',
+#             '#d8e244', '#eeeeee', '#56e244', '#007bff', 'black'] # надо сделать data['color'] = Category20c[len(x)]
+
+#     data = pd.Series(x).reset_index(name='value').rename(columns={'index': 'country'})
+#     data['angle'] = data['value']/data['value'].sum() * 2*pi
+#     data['color'] = chart_colors[:len(x)]
+
+#     p = figure(height=350, title='Статьи бюджета по месяцам', toolbar_location=None,
+#                     tools='hover', tooltips="@country: @value", x_range=(-0.5, 1.0))
+
+#     p.wedge(x=0, y=1, radius=0.4, 
+#                 start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), 
+#                 fill_color='color', legend_field='country', source=data)
+
+#     p.axis.axis_label = None
+#     p.axis.visible = False
+#     p.grid.grid_line_color = None
+
+#     return components(p, CDN)
+
+# TODO Дефект: если добавлять новое значение в следующем месяце, то все значения прикрепленные к следующему месяцу крепятся к предыдущему :(
+    # я хреново отображаю
 def draw_historical_months_bar(user):
-    names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
-    figure = go.Figure()
+    distinct_months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True).distinct())
+    months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True))
+    fields  = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name', flat=True).distinct())
+    colors = Category20[20]
+    data = {'months': distinct_months}
+    for i in fields:
+        values = list(BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True))
+        data.update({i:values})
+    plot = figure(x_range=distinct_months, height=500, title='Статьи бюджета по месяцам',
+                    toolbar_location=None, tools='hover', tooltips='$name @months: @$name')
+    plot.vbar_stack(fields, x='months', width=0.9, source=data, legend_label=fields, color=colors[:len(fields)])
+    plot.xgrid.grid_line_color = None
+    plot.axis.minor_tick_line_color = None
+    plot.outline_line_color = None
+    plot.legend.location = 'top_left'
+    plot.legend.orientation = 'horizontal'
 
-    for i in names:
-        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
-        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('month_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(months), y=list(values), name=i))
-
-    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
-    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
-
-# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
-# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
-#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
-#       Либо добавлять записи о каждой активной статье с наступлением месяца. Если статья для текущего месяца не найдена (и если она не active=False), 
-#       то добавлять в массив запись с прошлого месяца
-# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
-# TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
-# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
-def draw_historical_years_bar(user):
-    names = BudgetByYears.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
-    figure = go.Figure()
-
-    for i in names:
-        values = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
-        years = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('year_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(years), y=list(values), name=i))
-
-    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
-    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+    return components(plot, CDN)
