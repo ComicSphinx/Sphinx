@@ -146,25 +146,3 @@ def draw_historical_months_bar(user):
     plot.legend.orientation = 'horizontal'
 
     return components(plot, CDN)
-
-
-# def draw_historical_months_bar(user):
-#     months  = ['August', 'September']
-#     fields  = ['На квартиру', 'Акции']
-#     colors = ["#c9d9d3", "#718dbf"] # TODO не нужно хардкодить цвета, если будет больше или меньше 2 статей бюджета, будет ошибка
-#     data = {
-#             'months'        : months,
-#             'На квартиру'   : [300, 200],
-#             'Акции'         : [100, 200]
-#     }
-
-#     plot = figure(x_range=months, height=500, title='Статьи бюджета по месяцам',
-#                     toolbar_location=None, tools='hover', tooltips='$name @months: @$name')
-#     plot.vbar_stack(fields, x='months', width=0.9, color=colors, source=data, legend_label=fields)
-#     plot.xgrid.grid_line_color = None
-#     plot.axis.minor_tick_line_color = None
-#     plot.outline_line_color = None
-#     plot.legend.location = 'top_left'
-#     plot.legend.orientation = 'horizontal'
-
-#     return components(plot, CDN)
