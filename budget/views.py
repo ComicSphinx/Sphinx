@@ -127,11 +127,13 @@ def draw_pie(budget_fields):
 
 #     return components(p, CDN)
 
+# TODO Дефект: если добавлять новое значение в следующем месяце, то все значения прикрепленные к следующему месяцу крепятся к предыдущему :(
+    # я хреново отображаю
 def draw_historical_months_bar(user):
     distinct_months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True).distinct())
     months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True))
     fields  = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name', flat=True).distinct())
-    colors = Category20[10]
+    colors = Category20[20]
     data = {'months': distinct_months}
     for i in fields:
         values = list(BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True))
