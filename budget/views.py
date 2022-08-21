@@ -4,7 +4,7 @@ from sqlalchemy import true
 
 from math import pi
 import plotly.graph_objects as go
-from bokeh.palettes import Category20c
+from bokeh.palettes import Category20
 from bokeh.plotting import figure
 from bokeh.transform import cumsum
 from bokeh.resources import CDN
@@ -131,14 +131,14 @@ def draw_historical_months_bar(user):
     distinct_months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True).distinct())
     months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True))
     fields  = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name', flat=True).distinct())
-    # colors
+    colors = Category20[10]
     data = {'months': distinct_months}
     for i in fields:
         values = list(BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True))
         data.update({i:values})
     plot = figure(x_range=distinct_months, height=500, title='Статьи бюджета по месяцам',
                     toolbar_location=None, tools='hover', tooltips='$name @months: @$name')
-    plot.vbar_stack(fields, x='months', width=0.9, source=data, legend_label=fields)
+    plot.vbar_stack(fields, x='months', width=0.9, source=data, legend_label=fields, color=colors[:len(fields)])
     plot.xgrid.grid_line_color = None
     plot.axis.minor_tick_line_color = None
     plot.outline_line_color = None
