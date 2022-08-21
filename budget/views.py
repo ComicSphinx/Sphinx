@@ -23,9 +23,8 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
-    budget_by_months = BudgetByMonths.objects.filter(user_id=request.user, active=True)
     budget_by_years = BudgetByYears.objects.filter(user_id=request.user, active=True)
-    script, div = draw_historical_months_bar(budget_by_months)
+    script, div = draw_historical_months_bar(request.user)
 
     return render(request, 'budget.html', 
                     {'add_field_form': AddFieldForm, 'queryset': budget_fields, 
@@ -128,19 +127,18 @@ def draw_pie(budget_fields):
 
 #     return components(p, CDN)
 
-def draw_historical_months_bar(budget_by_months):
-    months  = ['August', 'September']
-    fields  = ['На квартиру', 'Акции']
-    colors = ["#c9d9d3", "#718dbf"] # не нужно хардкодить цвета, если будет больше или меньше 2 статей бюджета, будет ошибка
-    data = {'months'    : months,
-            'На квартиру'      : [100, 200],
-            'Акции'      : [100, 200]}
-
-    plot = figure(x_range=months, height=500, title='Статьи бюджета по месяцам',
+def draw_historical_months_bar(user):
+    distinct_months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True).distinct())
+    months = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number', flat=True))
+    fields  = list(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name', flat=True).distinct())
+    # colors
+    data = {'months': distinct_months}
+    for i in fields:
+        values = list(BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True))
+        data.update({i:values})
+    plot = figure(x_range=distinct_months, height=500, title='Статьи бюджета по месяцам',
                     toolbar_location=None, tools='hover', tooltips='$name @months: @$name')
-    plot.vbar_stack(fields, x='months', width=0.9, color=colors, source=data, legend_label=fields)
-    plot.y_range.start = 0
-    # plot.x_range.range_padding = 0.1
+    plot.vbar_stack(fields, x='months', width=0.9, source=data, legend_label=fields)
     plot.xgrid.grid_line_color = None
     plot.axis.minor_tick_line_color = None
     plot.outline_line_color = None
@@ -149,28 +147,24 @@ def draw_historical_months_bar(budget_by_months):
 
     return components(plot, CDN)
 
-# def draw_historical_months_bar(budget_by_months):
-#     fruits = ['Apples', 'Pears', 'Nectarines', 'Plums', 'Grapes', 'Strawberries']
-#     years = ["2015", "2016", "2017"]
-#     colors = ["#c9d9d3", "#718dbf", "#e84d60"]
 
-#     data = {'fruits' : fruits,
-#             '2015'   : [2, 1, 4, 3, 2, 4],
-#             '2016'   : [5, 3, 4, 2, 4, 6],
-#             '2017'   : [3, 2, 4, 4, 5, 3]}
+# def draw_historical_months_bar(user):
+#     months  = ['August', 'September']
+#     fields  = ['На квартиру', 'Акции']
+#     colors = ["#c9d9d3", "#718dbf"] # TODO не нужно хардкодить цвета, если будет больше или меньше 2 статей бюджета, будет ошибка
+#     data = {
+#             'months'        : months,
+#             'На квартиру'   : [300, 200],
+#             'Акции'         : [100, 200]
+#     }
 
-#     p = figure(x_range=fruits, height=250, title="Fruit Counts by Year",
-#                toolbar_location=None, tools="hover", tooltips="$name @fruits: @$name")
+#     plot = figure(x_range=months, height=500, title='Статьи бюджета по месяцам',
+#                     toolbar_location=None, tools='hover', tooltips='$name @months: @$name')
+#     plot.vbar_stack(fields, x='months', width=0.9, color=colors, source=data, legend_label=fields)
+#     plot.xgrid.grid_line_color = None
+#     plot.axis.minor_tick_line_color = None
+#     plot.outline_line_color = None
+#     plot.legend.location = 'top_left'
+#     plot.legend.orientation = 'horizontal'
 
-#     p.vbar_stack(years, x='fruits', width=0.9, color=colors, source=data,
-#                  legend_label=years)
-
-#     p.y_range.start = 0
-#     p.x_range.range_padding = 0.1
-#     p.xgrid.grid_line_color = None
-#     p.axis.minor_tick_line_color = None
-#     p.outline_line_color = None
-#     p.legend.location = "top_left"
-#     p.legend.orientation = "horizontal"
-
-#     return components(p, CDN)
+#     return components(plot, CDN)
