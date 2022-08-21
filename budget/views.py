@@ -1,7 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
+
+from math import pi
 import plotly.graph_objects as go
+from bokeh.palettes import Category20c
+from bokeh.plotting import figure, show
+from bokeh.transform import cumsum
+from bokeh.resources import CDN
+from bokeh.embed import components
+import pandas as pd
+
 from datetime import datetime as datetime
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -14,10 +23,14 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
+    budget_by_months = BudgetByMonths.objects.filter(user_id=request.user, active=True)
+    budget_by_years = BudgetByYears.objects.filter(user_id=request.user, active=True)
+    month_script, month_div = draw_historical_months_bar(budget_by_months)
+
     return render(request, 'budget.html', 
                     {'add_field_form': AddFieldForm, 'queryset': budget_fields, 
-                    'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user), 
-                    'bar_by_years': draw_historical_years_bar(request.user)})
+                    'pie': draw_pie(budget_fields), 
+                    'script': month_script, 'div': month_div})
 
 # TODO refactor it (name, at least)
 @login_required(login_url='/accounts/login/')
@@ -89,43 +102,27 @@ def draw_pie(budget_fields):
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
-# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
-# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
-#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
-#       Либо добавлять записи о каждой активной статье с наступлением месяца. Если статья для текущего месяца не найдена (и если она не active=False), 
-#       то добавлять в массив запись с прошлого месяца
-# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
-# TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
-# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
-# TODO: этот метод можно сделать универсальныМ, передавая в него параметры, и сразу получать в одной функции и график по месяцам, и по годам
-def draw_historical_months_bar(user):
-    names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
-    figure = go.Figure()
+def draw_historical_months_bar(budget_by_months):
+    x = {}
+    
+    for i in budget_by_months:
+        x.update({i.month_number: i.field_value})
+    chart_colors = ['#44e5e2', '#e29e44', '#e244db',
+            '#d8e244', '#eeeeee', '#56e244', '#007bff', 'black']
 
-    for i in names:
-        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
-        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i).values_list('month_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(months), y=list(values), name=i))
+    data = pd.Series(x).reset_index(name='value').rename(columns={'index': 'country'})
+    data['angle'] = data['value']/data['value'].sum() * 2*pi
+    data['color'] = chart_colors[:len(x)]
 
-    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
-    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+    p = figure(height=350, title='Статьи бюджета по месяцам', toolbar_location=None,
+                    tools='hover', tooltips="@country: @value", x_range=(-0.5, 1.0))
 
-# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
-# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
-#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
-#       Либо добавлять записи о каждой активной статье с наступлением месяца. Если статья для текущего месяца не найдена (и если она не active=False), 
-#       то добавлять в массив запись с прошлого месяца
-# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
-# TODO: Когда я сделаю вывод месяцев в виде названий, сделать сортировку по X (чтобы месяца по порядку появлялись, можно по дате создания сортировать)
-# TODO: Сделать нормальное отображение значений в боксе при наведении на сегмент
-def draw_historical_years_bar(user):
-    names = BudgetByYears.objects.filter(user_id=user, active=True).values_list('field_name').values_list('field_name', flat=True).distinct()
-    figure = go.Figure()
+    p.wedge(x=0, y=1, radius=0.4, 
+                start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), 
+                line_color='white', fill_color='color', legend_field='country', source=data)
 
-    for i in names:
-        values = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('field_value', flat=True).distinct()
-        years = BudgetByYears.objects.filter(user_id=user, active=True, field_name=i).values_list('year_number', flat=True).distinct()
-        figure.add_trace(go.Bar(x=list(years), y=list(values), name=i))
+    p.axis.axis_label = None
+    p.axis.visible = False
+    p.grid.grid_line_color = None
 
-    figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
-    return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
+    return components(p, CDN)
