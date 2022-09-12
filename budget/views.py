@@ -102,32 +102,15 @@ def draw_pie(budget_fields):
 #     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
 #     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
+# TODO: сделать так, чтобы цвета совпадали с круговым графиком
 def draw_historical_months_bar(user):
-    # TODO: сделать так, чтобы цвета совпадали с круговым графиком
-    # budget_by_months = BudgetByMonths.objects.filter(user_id=user, active=True).distinct()
-    # months = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('month_number').distinct()
-    # values = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_value').distinct()
     names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name')
     figure = go.Figure()
-    # field_values = []
 
-    # TODO: есть две проблемы:
-    # 1. Оно не отображает, если бар прикреплен к двум
-    #
     for i in names:
         values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value', flat=True).distinct()
         months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('month_number', flat=True).distinct()
-        print(i, list(values), list(months))
         figure.add_trace(go.Bar(x=list(months), y=list(values), name=i[0]))
-
-    # figure.add_trace(go.Bar(x=[7, 8], y=[310], name='тест'))
-    
-    # что делать, если тогда еще не было этой записи? Это явно возникнет
-    # >> Оно запишется для самого первого месяца в массиве. Значит, надо еще как-то за массивом явно закреплять
-    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 310], name='Квартира'))
-    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 500], name='Акции'))
-    # figure.add_trace(go.Bar(x=[7, 8], y=[0, 800], name='Облигации'))
-    # figure.add_trace(go.Bar(x=[7, 8], y=[110, 110], name='Хотелки'))
 
     figure.update_layout(barmode='stack', xaxis={'categoryorder':'category ascending'})
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
