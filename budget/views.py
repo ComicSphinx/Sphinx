@@ -2,7 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from sqlalchemy import true
 import plotly.graph_objects as go
-import datetime
+from datetime import datetime as datetime
+from django.core.exceptions import ObjectDoesNotExist
 
 from .forms import AddFieldForm
 from .models import Budget, BudgetByMonths, BudgetByYears
@@ -22,8 +23,8 @@ def add_field_to_db(request):
     field_value = request.POST['field_value']
     budget = Budget(user_id=request.user, field_name=field_name, field_value=field_value, active=True)
     budget.save()
-    BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.datetime.now().month, active=True).save()
-    BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.datetime.now().year, active=True).save()
+    BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
+    BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
     return redirect('/budget/')
 
 # TODO починить апдейт перед сливом в main
@@ -45,7 +46,7 @@ def update_field(request):
         budget_by_months.field_name = field_name
         budget_by_months.field_value = field_value
         budget_by_months.save()
-    except model.NameError:
+    except BudgetByMonths.DoesNotExist:
         BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
 
     try:
@@ -53,7 +54,7 @@ def update_field(request):
         budget_by_years.field_name = field_name
         budget_by_years.field_value = field_value
         budget_by_years.save()
-    except model.NameError:
+    except BudgetByMonths.DoesNotExist:
         BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
 
     return redirect('/budget/')
@@ -110,10 +111,14 @@ def draw_historical_months_bar(user):
     figure = go.Figure()
     # field_values = []
 
+    # TODO: есть две проблемы:
+    # 1. Оно не отображает, если бар прикреплен к двум
+    #
     for i in names:
-        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value').distinct()
-        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('month_number').distinct()
-        figure.add_trace(go.Bar(x=list(months)[0], y=list(values)[0], name=i[0]))
+        values = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('field_value', flat=True).distinct()
+        months = BudgetByMonths.objects.filter(user_id=user, active=True, field_name=i[0]).values_list('month_number', flat=True).distinct()
+        print(i, list(values), list(months))
+        figure.add_trace(go.Bar(x=list(months), y=list(values), name=i[0]))
 
     # figure.add_trace(go.Bar(x=[7, 8], y=[310], name='тест'))
     
