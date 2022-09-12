@@ -89,7 +89,11 @@ def draw_pie(budget_fields):
     figure = go.Figure(data=[go.Pie(labels=labels, values=values, textinfo='label+percent', insidetextorientation='radial', textposition='inside')])
     return(figure.to_html(figure, include_plotlyjs=True, full_html=False))
 
-# TODO: сделать так, чтобы цвета совпадали с круговым графиком
+# TODO: Сделать так, чтобы цвета совпадали с круговым графиком
+# TODO: Если статья не обновлялась в месяце, то она и не будет отображаться для него. Надо сделать так, 
+#       чтобы оно автоматически целпяло сумму последнего зафиксированного месяца, если статья еще активна. 
+#       Либо добавлять записи о каждой активной статье с наступлением месяца.
+# TODO: Также необходимо отображать статью во всех месяцах, когда она была активна, и не отображать, когда она была удалена. Работает ли это сейчас?
 def draw_historical_months_bar(user):
     names = BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name')
     figure = go.Figure()
