@@ -14,7 +14,7 @@ from .models import Budget, BudgetByMonths, BudgetByYears
 def budget_view(request):
     add_field_form = AddFieldForm()
     budget_fields = Budget.objects.filter(user_id=request.user, active=True)
-    # print(BudgetByMonths.objects.filter(user_id=user, active=True).values_list('field_name'))
+    print(BudgetByMonths.objects.filter(user_id=request.user, active=True).values_list('field_name'))
     return render(request, 'budget.html', {'add_field_form': AddFieldForm, 'queryset': budget_fields, 'pie': draw_pie(budget_fields), 'bar_by_months': draw_historical_months_bar(request.user)})
 
 # TODO refactor it (name, at least)
@@ -58,7 +58,7 @@ def update_field(request):
         field_by_years.field_name = field_name
         field_by_years.field_value = field_value
         field_by_years.save()
-    except BudgetByMonths.DoesNotExist:
+    except BudgetByYears.DoesNotExist:
         BudgetByYears(user_id=request.user, field_id=field, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
 
     return redirect('/budget/')
