@@ -34,28 +34,27 @@ def update_field(request):
     field_name = request.POST['field_name']
     field_value = request.POST['field_value']
     
-    budget = Budget.objects.get(id=field_id)
-    budget.field_name = field_name
-    budget.field_value = field_value
-    budget.save()
+    field = Budget.objects.get(id=field_id)
+    field.field_name = field_name
+    field.field_value = field_value
+    field.save()
 
     # TODO: refactoring
-    # сделать исключение, если не найдено, то создать
     try:
-        budget_by_months = BudgetByMonths.objects.get(field_id=budget, month_number = datetime.now().month)
-        budget_by_months.field_name = field_name
-        budget_by_months.field_value = field_value
-        budget_by_months.save()
+        field_by_months = BudgetByMonths.objects.get(field_id=field, month_number = datetime.now().month)
+        field_by_months.field_name = field_name
+        field_by_months.field_value = field_value
+        field_by_months.save()
     except BudgetByMonths.DoesNotExist:
-        BudgetByMonths(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
+        BudgetByMonths(user_id=request.user, field_id=field, field_name=field_name, field_value=field_value, month_number=datetime.now().month, active=True).save()
 
     try:
-        budget_by_years = BudgetByYears.objects.get(field_id=budget, year_number = datetime.now().year)
-        budget_by_years.field_name = field_name
-        budget_by_years.field_value = field_value
-        budget_by_years.save()
+        field_by_years = BudgetByYears.objects.get(field_id=field, year_number = datetime.now().year)
+        field_by_years.field_name = field_name
+        field_by_years.field_value = field_value
+        field_by_years.save()
     except BudgetByMonths.DoesNotExist:
-        BudgetByYears(user_id=request.user, field_id=budget, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
+        BudgetByYears(user_id=request.user, field_id=field, field_name=field_name, field_value=field_value, year_number=datetime.now().year, active=True).save()
 
     return redirect('/budget/')
 
